@@ -1,6 +1,7 @@
 mod reader;
 mod parser;
 mod formatter;
+mod filter;
 
 use clap::{Parser, Subcommand};
 use std::path::Path;
