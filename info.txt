@@ -1,0 +1,12 @@
+src/
+├── main.rs       — CLI + orchestration
+├── reader.rs     — opens files, delivers lines
+├── parser.rs     — detects format, extracts level + message
+└── formatter.rs  — colors output by level
+
+Commands working:
+
+logx read sample.log
+logx read sample.log --level warn
+logx read sample.log --grep "connection"
+logx read sample.log --tail 3
