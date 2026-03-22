@@ -1,0 +1,7 @@
+logx read sample.log                          # basic read
+logx read sample.log --level warn             # level filter
+logx read sample.log --grep "connection"      # regex search
+logx read sample.log --grep "x|y" --invert   # inverted regex
+logx read sample.log --since 1h              # time filter
+logx read sample.log --until "2026-03-17"    # time upper bound
+logx read sample.log --tail 3                # last N lines

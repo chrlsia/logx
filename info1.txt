@@ -1,0 +1,30 @@
+That's the cleanest build yet — zero warnings, zero errors. Wiring the filter in made all the unused warnings disappear.
+
+Let's test all the new Phase 2 features:
+
+```bash
+# Level filter
+cargo run -- read sample.log --level warn
+```
+
+```bash
+# Inverted grep — show lines that do NOT contain "connection"
+cargo run -- read sample.log --grep connection --invert
+```
+
+```bash
+# Regex grep — lines containing "connection" OR "memory"
+cargo run -- read sample.log --grep "connection|memory"
+```
+
+```bash
+# Time filter — since 1 hour ago (all lines should show since sample is recent)
+cargo run -- read sample.log --since 1h
+```
+
+```bash
+# Bad pattern — should show a clean error message
+cargo run -- read sample.log --since "banana"
+```
+
+Run them one by one and tell me what you see.
