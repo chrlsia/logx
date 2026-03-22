@@ -3,9 +3,10 @@ mod parser;
 mod formatter;
 
 use clap::{Parser, Subcommand};
-use std::path::Path;          // ← add
-use reader::Reader;           // ← add
-use parser::Parser as LogParser;   // ← new
+use std::path::Path;
+use reader::Reader;
+use parser::Parser as LogParser;
+use formatter::Formatter;          // ← new
 
 #[derive(Parser)]
 #[command(name = "logx", about = "⚡ Universal log analyzer CLI", version = "0.1.0")]
@@ -28,15 +29,15 @@ fn main() {
 
     match cli.command {
         Commands::Read { file } => {
-            run_read(file);   // ← change
+            run_read(file);
         }
     }
 }
 
-// ← everything below is new
 fn run_read(file: String) {
-    let reader = Reader::new();
-    let parser  = LogParser::new();   // ← new
+    let reader    = Reader::new();
+    let parser    = LogParser::new();
+    let formatter = Formatter::new(None);   // ← new
 
     let lines: Vec<String> = match reader.read_lines(Path::new(&file)) {
         Ok(l) => l,
@@ -47,9 +48,8 @@ fn run_read(file: String) {
     };
 
     for line in &lines {
-        let entry = parser.parse_line(line);   // ← new
-        println!("{}", line);
-        println!("{:?} | {}", entry.level, entry.message);   // ← new
+        let entry = parser.parse_line(line);
+        println!("{}", formatter.format(&entry));   // ← changed
     }
 
     println!("\n  {} lines read", lines.len());
