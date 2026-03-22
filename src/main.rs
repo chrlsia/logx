@@ -1,4 +1,8 @@
+mod reader;
+
 use clap::{Parser, Subcommand};
+use std::path::Path;          // ← add
+use reader::Reader;           // ← add
 
 #[derive(Parser)]
 #[command(name = "logx", about = "⚡ Universal log analyzer CLI", version = "0.1.0")]
@@ -21,7 +25,26 @@ fn main() {
 
     match cli.command {
         Commands::Read { file } => {
-            println!("Will read: {}", file);
+            run_read(file);   // ← change
         }
     }
+}
+
+// ← everything below is new
+fn run_read(file: String) {
+    let reader = Reader::new();
+
+    let lines: Vec<String> = match reader.read_lines(Path::new(&file)) {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("Error reading {}: {}", file, e);
+            std::process::exit(1);
+        }
+    };
+
+    for line in &lines {
+        println!("{}", line);
+    }
+
+    println!("\n  {} lines read", lines.len());
 }
