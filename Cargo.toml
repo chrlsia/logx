@@ -1,0 +1,20 @@
+[package]
+name = "logx"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# CLI argument parsing
+clap = { version = "4", features = ["derive"] }
+
+# Colored terminal output
+colored = "3.1.1"
+
+# JSON parsing
+serde_json = "1"
+
+# Date/time
+chrono = "0.4"
+
+# Regex
+regex = "1"
