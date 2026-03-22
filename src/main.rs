@@ -6,8 +6,9 @@ mod filter;
 use clap::{Parser, Subcommand};
 use std::path::Path;
 use reader::Reader;
-use parser::{Parser as LogParser, LogLevel};   // ← added LogLevel
+use parser::Parser as LogParser;
 use formatter::Formatter;
+use filter::Filter;                // ← new
 
 #[derive(Parser)]
 #[command(name = "logx", about = "⚡ Universal log analyzer CLI", version = "0.1.0")]
@@ -25,15 +26,27 @@ enum Commands {
 
         /// Only show lines at or above this level (trace/debug/info/warn/error/fatal)
         #[arg(short, long, value_name = "LEVEL")]
-        level: Option<String>,                    // ← new
+        level: Option<String>,
 
-        /// Highlight lines containing this pattern
+        /// Only show lines after this time (e.g. 30m, 2h, 1d, "2026-03-17 10:00:00")
+        #[arg(long, value_name = "TIME")]
+        since: Option<String>,             // ← new
+
+        /// Only show lines before this time
+        #[arg(long, value_name = "TIME")]
+        until: Option<String>,             // ← new
+
+        /// Show lines matching this pattern (regex supported)
         #[arg(short, long, value_name = "PATTERN")]
-        grep: Option<String>,                     // ← new
+        grep: Option<String>,
+
+        /// Invert grep — show lines that do NOT match
+        #[arg(short = 'v', long)]
+        invert: bool,                      // ← new
 
         /// Show only the last N lines
         #[arg(short, long, value_name = "N")]
-        tail: Option<usize>,                      // ← new
+        tail: Option<usize>,
     },
 }
 
@@ -41,26 +54,47 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Read { file, level, grep, tail } => {   // ← added level, grep, tail
-            run_read(file, level, grep, tail);
+        Commands::Read { file, level, since, until, grep, invert, tail } => {  // ← updated
+            run_read(file, level, since, until, grep, invert, tail);
         }
     }
 }
 
 fn run_read(
-    file:         String,
-    level_filter: Option<String>,    // ← new parameter
-    grep:         Option<String>,    // ← new parameter
-    tail:         Option<usize>,     // ← new parameter
+    file:   String,
+    level:  Option<String>,
+    since:  Option<String>,
+    until:  Option<String>,
+    grep:   Option<String>,
+    invert: bool,
+    tail:   Option<usize>,
 ) {
+    // Build the filter — validate all arguments up front
+    // before opening any file
+    let filter = match Filter::build(
+        level.as_deref(),
+        since.as_deref(),
+        until.as_deref(),
+        grep.as_deref(),
+        invert,
+    ) {
+        Ok(f)  => f,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    // Print active filters as a header
+    let desc = filter.describe();
+    if !desc.is_empty() {
+        println!("Filters: {}", desc.join("  ·  "));
+        println!();
+    }
+
     let reader    = Reader::new();
     let parser    = LogParser::new();
-    let formatter = Formatter::new(grep.clone());   // ← pass grep to formatter
-
-    let min_priority: u8 = level_filter
-        .as_deref()
-        .map(|l| LogLevel::from_str(l).priority())
-        .unwrap_or(0);                              // ← new: 0 = show everything
+    let formatter = Formatter::new(grep.clone());
 
     let lines: Vec<String> = match reader.read_lines(Path::new(&file)) {
         Ok(l) => l,
@@ -70,13 +104,13 @@ fn run_read(
         }
     };
 
-    // Apply --tail before anything else
+    // Apply --tail before filtering
     let lines_to_show: Vec<&String> = match tail {
         Some(n) => lines.iter().rev().take(n)
                         .collect::<Vec<_>>()
                         .into_iter().rev().collect(),
         None    => lines.iter().collect(),
-    };                                              // ← new
+    };
 
     let mut shown  = 0usize;
     let mut errors = 0usize;
@@ -88,15 +122,8 @@ fn run_read(
         if entry.level.priority() >= 4 { errors += 1; }
         if entry.level.priority() == 3 { warns  += 1; }
 
-        // Apply --level filter
-        if entry.level.priority() < min_priority { continue; }  // ← new
-
-        // Apply --grep filter
-        if let Some(ref pat) = grep {
-            if !line.to_lowercase().contains(&pat.to_lowercase()) {
-                continue;
-            }
-        }                                                        // ← new
+        // Use the filter instead of manual checks
+        if !filter.matches(&entry) { continue; }   // ← new
 
         println!("{}", formatter.format(&entry));
         shown += 1;
