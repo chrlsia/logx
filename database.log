@@ -1,0 +1,6 @@
+2026-03-17 10:32:01 DEBUG Query received INSERT orders
+2026-03-17 10:32:02 WARN  Connection pool below threshold
+2026-03-17 10:32:03 ERROR Lock timeout on table=orders
+2026-03-17 10:32:04 ERROR Transaction rolled back
+2026-03-17 10:32:10 DEBUG Query received SELECT users
+2026-03-17 10:32:11 INFO  Query complete rows=1

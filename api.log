@@ -1,0 +1,6 @@
+2026-03-17 10:31:58 INFO  Request received POST /orders
+2026-03-17 10:32:00 INFO  Calling database service
+2026-03-17 10:32:04 ERROR Database service timeout
+2026-03-17 10:32:05 ERROR Failed to create order
+2026-03-17 10:32:10 INFO  Request received GET /users
+2026-03-17 10:32:11 INFO  Returning user profile

@@ -54,6 +54,7 @@ pub struct LogEntry {
     pub message:   String,
     pub timestamp: Option<DateTime<Utc>>,
     pub raw:       String,
+    pub source:    Option<String>,    // ← new: which file this came from
 }
 
 // ─────────────────────────────────────────────
@@ -127,6 +128,7 @@ impl Parser {
             message,
             timestamp,
             raw: raw.to_string(),
+            source: None,             // ← new
         })
     }
 
@@ -136,7 +138,7 @@ impl Parser {
         let message = caps["msg"].to_string();
         let timestamp = Self::parse_timestamp(&caps["ts"]);
 
-        Some(LogEntry { level, message, timestamp, raw: raw.to_string() })
+        Some(LogEntry { level, message, timestamp, raw: raw.to_string(), source: None })
     }
 
     fn try_plain(&self, raw: &str) -> LogEntry {
@@ -150,6 +152,7 @@ impl Parser {
             message: raw.to_string(),
             timestamp: None,
             raw: raw.to_string(),
+            source: None,             // ← new
         }
     }
 

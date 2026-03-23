@@ -1,0 +1,31 @@
+cargo run -- correlate api.log database.log
+
+# Only show errors across both files
+cargo run -- correlate api.log database.log --level error
+
+# Only show a specific time window
+cargo run -- correlate api.log database.log --since "2026-03-17 10:32:03" --until "2026-03-17 10:32:06"
+
+
+======================================
+logx read sample.log
+logx read sample.log --level warn --grep "connection"
+logx read sample.log --since 1h --tail 20
+logx analyze sample.log
+logx analyze sample.log --level warn --since "2026-03-17 10:31:00"
+logx correlate api.log database.log
+logx correlate api.log database.log --level error
+logx correlate api.log database.log --since "2026-03-17 10:32:03"
+```
+
+**Final file structure — clean, zero warnings:**
+```
+src/main.rs        — CLI + orchestration
+src/reader.rs      — file reading
+src/parser.rs      — format detection
+src/formatter.rs   — colored output
+src/filter.rs      — filtering engine
+src/aggregator.rs  — statistics engine
+src/reporter.rs    — analysis display
+src/correlator.rs  — multi-file timeline
+
