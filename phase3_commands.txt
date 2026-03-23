@@ -1,0 +1,5 @@
+cargo run -- analyze sample.log
+
+cargo run -- analyze sample.log --level warn
+
+cargo run -- analyze sample.log --since "2026-03-17 10:31:00" --until "2026-03-17 10:32:30"
