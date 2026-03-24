@@ -5,3 +5,6 @@
 2026-03-17 10:32:01 ERROR Database connection failed
 2026-03-17 10:32:05 INFO  Retrying connection
 2026-03-17 10:32:20 FATAL Maximum retries reached
+2026-03-17 10:33:00 INFO  New connection established
+2026-03-17 10:33:05 ERROR Something just broke
+2026-03-17 10:33:10 WARN  Memory at 95%

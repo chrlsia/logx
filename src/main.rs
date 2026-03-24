@@ -5,6 +5,8 @@ mod filter;
 mod aggregator;
 mod reporter;
 mod correlator;
+mod watcher;
+mod tui;
 
 use clap::{Parser, Subcommand};
 use std::path::Path;
@@ -14,7 +16,8 @@ use formatter::Formatter;
 use filter::Filter;
 use aggregator::Aggregator;
 use reporter::Reporter;
-use correlator::Correlator;    // ← new
+use correlator::Correlator;
+use tui::run_tui;              // ← new
 
 #[derive(Parser)]
 #[command(name = "logx", about = "⚡ Universal log analyzer CLI", version = "0.1.0")]
@@ -65,8 +68,7 @@ enum Commands {
     },
 
     /// Correlate multiple log files into one unified timeline
-    Correlate {                                    // ← new command
-        /// Two or more log files to correlate
+    Correlate {
         #[arg(required = true, num_args = 2..)]
         files: Vec<String>,
 
@@ -82,6 +84,13 @@ enum Commands {
         #[arg(short, long, value_name = "PATTERN")]
         grep: Option<String>,
     },
+
+    /// Watch a log file live in a TUI dashboard
+    Watch {                          // ← new command
+        /// Path to the log file
+        #[arg(required = true)]
+        file: String,
+    },
 }
 
 fn main() {
@@ -94,8 +103,11 @@ fn main() {
         Commands::Analyze { file, level, since, until } => {
             run_analyze(file, level, since, until);
         }
-        Commands::Correlate { files, level, since, until, grep } => {  // ← new
+        Commands::Correlate { files, level, since, until, grep } => {
             run_correlate(files, level, since, until, grep);
+        }
+        Commands::Watch { file } => {              // ← new
+            run_watch(file);
         }
     }
 }
@@ -196,7 +208,6 @@ fn run_analyze(
     reporter.print(&summary, &file);
 }
 
-// ← new function
 fn run_correlate(
     files: Vec<String>,
     level: Option<String>,
@@ -213,4 +224,12 @@ fn run_correlate(
     };
 
     Correlator::new().run(&files, &filter);
+}
+
+// ← new function
+fn run_watch(file: String) {
+    if let Err(e) = run_tui(&file) {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
+    }
 }

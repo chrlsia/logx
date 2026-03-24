@@ -18,3 +18,9 @@ chrono = "0.4"
 
 # Regex
 regex = "1"
+
+# Terminal UI framework
+ratatui = "0.30.0"
+
+# Terminal raw mode and event handling
+crossterm = "0.29"
