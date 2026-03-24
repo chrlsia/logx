@@ -85,11 +85,11 @@ enum Commands {
         grep: Option<String>,
     },
 
-    /// Watch a log file live in a TUI dashboard
-    Watch {                          // ← new command
-        /// Path to the log file
-        #[arg(required = true)]
-        file: String,
+    /// Watch a log file live, or pipe output from another command
+    Watch {
+        /// Path to the log file (optional — omit to read from pipe)
+        #[arg(required = false)]
+        file: Option<String>,
     },
 }
 
@@ -226,9 +226,13 @@ fn run_correlate(
     Correlator::new().run(&files, &filter);
 }
 
-// ← new function
-fn run_watch(file: String) {
-    if let Err(e) = run_tui(&file) {
+fn run_watch(file: Option<String>) {
+    let result = match file.as_deref() {
+        Some(f) => run_tui(Some(f)),   // file mode
+        None    => run_tui(None),      // stdin mode
+    };
+
+    if let Err(e) = result {
         eprintln!("Error: {}", e);
         std::process::exit(1);
     }

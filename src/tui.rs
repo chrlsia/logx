@@ -60,7 +60,7 @@ impl App {
 // run_tui — the main entry point
 // Called from main.rs when user runs `logx watch`
 // ─────────────────────────────────────────────
-pub fn run_tui(filename: &str) -> io::Result<()> {
+pub fn run_tui(filename: Option<&str>) -> io::Result<()> {
     // Set up the terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -69,7 +69,7 @@ pub fn run_tui(filename: &str) -> io::Result<()> {
     let mut terminal = Terminal::new(backend)?;
 
     // Run the app — if it crashes, still restore terminal
-    let result = run_app(&mut terminal, filename);
+    let result = run_app(&mut terminal, filename.unwrap_or("stdin"));
 
     // Always restore the terminal before exiting
     disable_raw_mode()?;
