@@ -150,27 +150,13 @@ fn run_app(
             frame.render_widget(log_block, chunks[0]);
 
             // ── Stats bar ─────────────────────────────
-            let stats = Line::from(vec![
-                Span::raw("  Lines: "),
-                Span::styled(
-                    app.entries.len().to_string(),
-                    Style::default().add_modifier(Modifier::BOLD)
-                ),
-                Span::raw("   Errors: "),
-                Span::styled(
-                    app.errors.to_string(),
-                    Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
-                ),
-                Span::raw("   Warnings: "),
-                Span::styled(
-                    app.warns.to_string(),
-                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
-                ),
-                Span::styled(
-                    "        [q] quit   [↑/↓] scroll",
-                    Style::default().fg(Color::DarkGray)
-                ),
-            ]);
+            let stats_text = format!(
+                "  Lines: {}   Errors: {}   Warnings: {}        [q] quit   [↑/↓] scroll",
+                app.entries.len(),
+                app.errors,
+                app.warns,
+            );
+            let stats = Line::from(Span::raw(stats_text));
 
             let stats_block = Paragraph::new(stats)
                 .block(Block::default().borders(Borders::ALL).title(" Stats "));

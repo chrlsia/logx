@@ -131,8 +131,8 @@ fn run_read(
 
     let desc = filter.describe();
     if !desc.is_empty() {
-        println!("Filters: {}", desc.join("  ·  "));
-        println!();
+        eprintln!("Filters: {}", desc.join("  ·  "));
+        eprintln!();
     }
 
     let reader    = Reader::new();
@@ -167,8 +167,8 @@ fn run_read(
         shown += 1;
     }
 
-    println!();
-    println!("  {} lines shown  ·  {} errors  ·  {} warnings", shown, errors, warns);
+    eprintln!();
+    eprintln!("  {} lines shown  ·  {} errors  ·  {} warnings", shown, errors, warns);
 }
 
 fn run_analyze(
