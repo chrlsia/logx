@@ -82,14 +82,32 @@ fn run_app(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
     filename: &str,
 ) -> io::Result<()> {
-    let parser  = LogParser::new();
-    let mut watcher = Watcher::new(filename);
+    let parser      = LogParser::new();
     let mut app     = App::new(filename);
+    let is_stdin    = filename == "stdin";  // ← new: detect mode
 
-    // Load all existing lines first
-    for line in watcher.read_all() {
-        app.push(parser.parse_line(&line));
-    }
+    // ── File mode: load existing lines + watch for new ones ──
+    // ── Stdin mode: read all piped lines upfront ─────────────
+    let mut watcher = if !is_stdin {
+        let mut w = Watcher::new(filename);
+        for line in w.read_all() {
+            app.push(parser.parse_line(&line));
+        }
+        Some(w)
+    } else {
+        // Read everything from stdin right now
+        // (the pipe is already complete by the time we start)
+        use std::io::BufRead;
+        let stdin = io::stdin();
+        for line in stdin.lock().lines() {
+            if let Ok(l) = line {
+                if !l.is_empty() {
+                    app.push(parser.parse_line(&l));
+                }
+            }
+        }
+        None  // no watcher needed for stdin
+    };
 
     let mut last_poll = Instant::now();
 
@@ -185,15 +203,17 @@ fn run_app(
             }
         }
 
-        // Poll for new lines every 250ms
+        // Poll for new lines every 250ms (file mode only)
         if last_poll.elapsed() >= Watcher::poll_interval() {
-            let new_lines = watcher.poll_new();
-            if !new_lines.is_empty() {
-                for line in new_lines {
-                    app.push(parser.parse_line(&line));
+            if let Some(ref mut w) = watcher {
+                let new_lines = w.poll_new();
+                if !new_lines.is_empty() {
+                    for line in new_lines {
+                        app.push(parser.parse_line(&line));
+                    }
+                    let log_height = terminal.size()?.height as usize - 5;
+                    app.scroll_to_bottom(log_height);
                 }
-                let log_height = terminal.size()?.height as usize - 5;
-                app.scroll_to_bottom(log_height);
             }
             last_poll = Instant::now();
         }
