@@ -26,5 +26,3 @@ cargo run -- read sample.log --since 1h
 # Bad pattern — should show a clean error message
 cargo run -- read sample.log --since "banana"
 ```
-
-Run them one by one and tell me what you see.
